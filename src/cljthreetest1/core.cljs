@@ -1,4 +1,5 @@
-(ns cljthreetest1.core)
+(ns cljthreetest1.core
+  (:require [cljsjs.three]))
 
 (def renderer-color 0xEEEEEE)
 (def plane-color 0xCCCCCC)
@@ -9,7 +10,7 @@
   []
   ((fn [renderer]
      (do
-       (.setClearColorHex renderer)
+;       (.setClearColorHex renderer)
        (.setClearColor renderer (js/THREE.Color. renderer-color))
        (.setSize renderer (.-innerWidth js/window) (.-innerHeight js/window))
        renderer))
@@ -86,7 +87,7 @@
     (.render renderer scene camera)
     nil))
 
-(defn init
+(defn ^:export init
   []
   (-> (create-basic-stuff)
       add-axes
