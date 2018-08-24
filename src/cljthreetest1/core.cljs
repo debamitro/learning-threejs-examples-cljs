@@ -6,7 +6,7 @@
 (def cube-color 0xFF0000)
 (def sphere-color 0x7777FF)
 
-(defn create-renderer
+(defn create-renderer!
   []
   ((fn [renderer]
      (do
@@ -16,25 +16,21 @@
        renderer))
    (js/THREE.WebGLRenderer.)))
 
-(defn create-basic-stuff
+(defn create-scene!
   []
-  {:scene (js/THREE.Scene.)
-   :camera (js/THREE.PerspectiveCamera. 45 (/ (.-innerWidth js/window) (.-innerHeight js/window)) 0.1 1000)
-   :renderer (create-renderer)})
+  (js/THREE.Scene.))
 
-(defn add-axes
-  [{:keys [scene camera renderer] :as stuff}]
-  (do
-    (.add scene (js/THREE.AxisHelper. 20))
-    stuff))
+(defn create-camera!
+  []
+  (js/THREE.PerspectiveCamera. 45 (/ (.-innerWidth js/window) (.-innerHeight js/window)) 0.1 1000))
 
-(defn create-sphere
+(defn create-sphere!
   []
   (js/THREE.Mesh.
     (js/THREE.SphereGeometry. 4 20 20)
     (js/THREE.MeshBasicMaterial. (js-obj "color" sphere-color "wireframe" true))))
 
-(defn position-object
+(defn position-object!
   [object x y z]
   (do
     (set! (.-x (.-position object)) x)
@@ -42,56 +38,43 @@
     (set! (.-z (.-position object)) z)
     object))
 
-(defn add-sphere
-  [{:keys [scene camera renderer] :as stuff}]
-  (do
-    (.add scene (position-object (create-sphere) 20 4 2))
-    stuff))
-
-(defn create-plane
+(defn create-plane!
   []
   (js/THREE.Mesh.
     (js/THREE.PlaneGeometry. 60 20)
     (js/THREE.MeshBasicMaterial. (js-obj "color" plane-color))))
 
-(defn rotate-object
+(defn rotate-object!
   [object r]
   (do
     (set! (.-x (.-rotation object)) r)
     object))
 
-(defn add-plane
-  [{:keys [scene camera renderer] :as stuff}]
-  (do
-    (.add scene (rotate-object (position-object (create-plane) 15 0 0) (* -0.5 (.-PI js/Math))))
-    stuff))
-
-(defn create-cube
-  []
+(defn create-cube!
+  [edgesize]
   (js/THREE.Mesh.
-    (js/THREE.BoxGeometry. 4 4 4)
+    (js/THREE.BoxGeometry. edgesize edgesize edgesize)
     (js/THREE.MeshBasicMaterial. (js-obj "color" cube-color "wireframe" true))))
 
-(defn add-cube
-  [{:keys [scene camera renderer] :as stuff}]
+(defn add-output-to-html!
+  [scene camera renderer]
   (do
-    (.add scene (position-object (create-cube) -4 3 0))
-    stuff))
-
-(defn add-output-to-html
-  [{:keys [scene camera renderer]}]
-  (do
-    (position-object camera -30 40 30)
     (.lookAt camera (.-position scene))
     (.appendChild (.getElementById js/document "webGL-output") (.-domElement renderer))
     (.render renderer scene camera)
     nil))
 
+(defn populate-scene!
+  [scene]
+  (do
+    (.add scene (js/THREE.AxisHelper. 20))
+    (.add scene (rotate-object! (position-object! (create-plane!) 15 0 0) (* -0.5 (.-PI js/Math))))
+    (.add scene (position-object! (create-sphere!) 20 4 2))
+    (.add scene (position-object! (create-cube! 4) -4 3 0))
+    scene))
+
 (defn ^:export init
   []
-  (-> (create-basic-stuff)
-      add-axes
-      add-plane
-      add-cube
-      add-sphere
-      add-output-to-html))
+  (add-output-to-html! (populate-scene! (create-scene!))
+                       (position-object! (create-camera!) -30 40 30)
+                       (create-renderer!)))
