@@ -64,17 +64,22 @@
     (.render renderer scene camera)
     nil))
 
+(defn create-objects!
+  []
+  [(js/THREE.AxisHelper. 20)
+   (rotate-object! (position-object! (create-plane!) 15 0 0) (* -0.5 (.-PI js/Math)))
+   (position-object! (create-sphere!) 20 4 2)
+   (position-object! (create-cube! 4) -4 3 0)])
+
 (defn populate-scene!
-  [scene]
+  [scene objects]
   (do
-    (.add scene (js/THREE.AxisHelper. 20))
-    (.add scene (rotate-object! (position-object! (create-plane!) 15 0 0) (* -0.5 (.-PI js/Math))))
-    (.add scene (position-object! (create-sphere!) 20 4 2))
-    (.add scene (position-object! (create-cube! 4) -4 3 0))
+    (doseq [object objects]
+      (.add scene object))
     scene))
 
 (defn ^:export init
   []
-  (add-output-to-html! (populate-scene! (create-scene!))
+  (add-output-to-html! (populate-scene! (create-scene!) (create-objects!))
                        (position-object! (create-camera!) -30 40 30)
                        (create-renderer!)))
